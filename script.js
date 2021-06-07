@@ -17,7 +17,7 @@ class GoodsItem {
       <a href="#" class="goods-imgLink"><img src="img/${this.img}.jpeg" class="goods-img" alt="product"></a>
       <h3>${this.product_name}</h3>
       <p>${this.price}</p>
-      <button type="button" class="addToCart" id="${this.id_product}">В корзину</button>
+      <button type="button" class="addToCart" data-id="${this.id_product}">В корзину</button>
       ${helpLine}
     </div>
     `
@@ -26,11 +26,16 @@ class GoodsItem {
 class GoodsList {
   constructor() {
     this.goods = [];
+    this.addedToCart = [];
+    this.filteredGoods = [];
   }
   async fetchGoods() {
     const response = await fetch(`${API_URL}/catalogData.json`);
-    const catalogItems = await response.json();
-    this.goods = catalogItems;
+    if (response.ok) {
+      const catalogItems = await response.json();
+      this.goods = catalogItems;
+      this.filteredGoods = catalogItems;
+    }
     // this.goods = [
     //   { id_product: 12, product_name: 'kate', price: 123 },
     //   { id_product: 23, product_name: 'vania', price: 234 },
@@ -39,31 +44,25 @@ class GoodsList {
     // ]
   }
 
-
-  /**
-    Метод осуществляет добавление в корзину выбранных товаров из GoodsList 
-    Убрать отсюда вызовы методов удаления из корзины и подсчета цены не получилось...
-    */
-  addToCart() {
-    const cartList = new CartList();
-    this.goods.forEach(good => {
-      let button = document.getElementById(`${good.id_product}`);
-      button.addEventListener('click', () => {
-        if ( button.innerText === 'В КОРЗИНУ' ) {
-          button.innerText = 'Добавлено';
-          button.style.background = '#8c5241';
-          cartList.cartGoods.push(good);
-          cartList.render(cartList.cartGoods);
-          cartList.calcTotalPrice(cartList.cartGoods);
-          cartList.removeFromCart();
-        }
-      })
-    })
+  filterGoods(value) {
+    console.log(value);
+    const regExp = new RegExp(value, 'i');
+    this.filteredGoods = this.goods.filter(good => regExp.test(good.product_name));
+    console.log(this.filteredGoods);
+    this.render(this.filteredGoods);
   }
 
-  render() {
+  addToCart(id, cartList) {
+    cartList.cartGoods = this.addedToCart;
+    let checkGoods = cartList.cartGoods.find(cartGood => cartGood.id_product === id );
+    if (checkGoods === undefined) {
+      this.addedToCart.push(this.goods.find(good => good.id_product === id));
+    }
+  }
+
+  render(props) {
     let listHTML = '';
-    this.goods.forEach((good) => {
+    props.forEach((good) => {
       const goodItem = new GoodsItem(good.id_product, good.product_name, good.price, good.img);
       listHTML += goodItem.render();
     });
@@ -94,40 +93,24 @@ class CartList {
     this.cartGoods = [];
   }
 
-  calcTotalPrice(objArr) {
+  calcTotalPrice() {
     let totalPrice = 0;
-    objArr.forEach((good) => {
+    this.cartGoods.forEach((good) => {
       totalPrice += good.price;
     });
     document.querySelector('.totalPrice').innerText = totalPrice;
   }
 
-  removeFromCart() {
-    let removeButtons = document.querySelectorAll('.removeFromCart');
-
-    this.cartGoods.forEach((cartGood) => {
-      removeButtons.forEach(btn => {
-        btn.addEventListener('click', (event) => {
-          let addButton = document.getElementById(`${cartGood.id_product}`);
-          if (cartGood.id_product === +event.target.dataset.id) {
-            this.cartGoods.splice(this.cartGoods.indexOf(cartGood), 1);
-            addButton.innerText = 'В корзину';
-            addButton.style.background = '#cba59a';
-          }
-        })
-      })
-    })
-
-    document.getElementById('updateCart').addEventListener('click', () => {
-      this.render(this.cartGoods);
-      this.calcTotalPrice(this.cartGoods);
-    })
+  removeFromCart(id) {
+    let removedGood = this.cartGoods.findIndex(cartGood => cartGood.id_product === id );
+    this.cartGoods.splice(removedGood, 1);
+    return this.cartGoods;
   }
 
-  render(objArray) {
+  render() {
     let cartListHTML = '';
 
-    objArray.forEach((good) => {
+    this.cartGoods.forEach((good) => {
       const cartItem = new CartItem(good.id_product, good.product_name, good.price, good.img);
       cartListHTML += cartItem.render();
     });
@@ -137,9 +120,42 @@ class CartList {
 
 const init = async () => {
   const list = new GoodsList();
+  const cartList = new CartList();
+
   await list.fetchGoods();
-  list.render();
-  list.addToCart();
+  list.render(list.goods);
+
+  const searchButton = document.querySelector('.searchButton');
+  const searchInput = document.querySelector('.goodsSearch');
+
+  searchButton.addEventListener('click', () => {
+    list.filterGoods(searchInput.value);
+  })
+
+  const updateCart = document.getElementById('updateCart');
+  updateCart.addEventListener('click', () => {
+    cartList.render();
+
+    cartList.calcTotalPrice();
+
+    const removeButtons = document.querySelectorAll('.removeFromCart');
+    removeButtons.forEach(btn => {
+      btn.addEventListener('click', (event) => {
+        cartList.removeFromCart(+event.target.dataset.id);
+      })
+    })
+  })
+
+  const addToCartButtons = document.querySelectorAll('.addToCart');
+  addToCartButtons.forEach(btn => {
+    btn.addEventListener('click', (event) => {
+      list.addToCart(+event.target.dataset.id, cartList);
+      if ( btn.innerText === 'В КОРЗИНУ' ) {
+        btn.innerText = 'Добавлено';
+        btn.style.background = '#8c5241';
+      }
+    })
+  })
 };
 
 window.onload = init;
