@@ -123,3 +123,6 @@ button:hover {
 .smallLine {
     background-size: 20px 20px;
 }
+.emphasised {
+    color: red;
+}
