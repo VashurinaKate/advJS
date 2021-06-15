@@ -126,3 +126,20 @@ button:hover {
 .emphasised {
     color: red;
 }
+.error-wrap {
+    width: 100%;
+    height: 100%;
+    position: fixed;
+    top: 0; left: 0;
+    background: rgb(255, 255, 255);
+}
+.error-modal {
+    position: absolute;
+    top: 50%;
+    left: 35.7%;
+    width: 500px;
+    border: 2px solid #bb4322;
+    background: white;
+    text-align: center;
+    padding: 20px;
+}

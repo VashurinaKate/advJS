@@ -11,48 +11,19 @@
 </head>
 <body>
     <div id="app" class="center">
-        <header class="center">
+        <header>
             <div class="logo">
                 <a href="#">eShop</a>
             </div>
-    
-            <div class="searchForm">
-                <input type="text" class="goodsSearch" v-model="searchLine">
-                <button class="searchButton" v-on:click="filterGoods(searchLine)">Искать</button>
-            </div>
+            <filter-goods></filter-goods>
             <button class="cart-button" type="button">Cart</button>
         </header>
+        <goods-list :goods="filteredGoods"></goods-list>
+        <cart-goods :cart-goods="cartGoods"></cart-goods>
 
-        <div class="goods-list">
-            <p v-if="filteredGoods.length === 0">По Вашему запросу <span class="emphasised"> {{searchLine}} </span>ничего не найдено</p>
-
-            <div class="goods-item" v-for="goods in filteredGoods">
-                <a href="#" class="goods-imgLink"><img src="img/noImage.jpeg" class="goods-img" alt="product"></a>
-                <h3>{{goods.product_name}}</h3>
-                <p>{{goods.price}}</p>
-                <button type="button" class="addToCart" v-on:click="addToCart(goods.id_product)">В корзину</button>
-                <div class="holder">
-                    <div class="smallLine smallLine1"></div>
-                    <div class="smallLine smallLine2"></div>
-                </div>
-            </div>
-        </div>
-
-        <h3>Корзина</h3>
-
-        <div class="cart-list">
-            <h2 v-if="cartGoods.length === 0">Ваша корзина пуста</h2>
-            <div class="cart-item" v-for="goods in cartGoods">
-                <a href="#" class="cart-imgLink"><img src="img/noImage.jpeg" class="cart-img" alt="product"></a>
-                <h3>{{goods.product_name}}</h3>
-                <p>{{goods.price}}</p>
-                <button class="removeFromCart" v-on:click="removeFromCart(goods.id_product)">Удалить</button>
-            </div>
-        </div>
-        <div v-if="cartGoods.length !== 0" style="display: flex;">
-            <p>Итого:</p><p class="emphasised"> {{totalPrice}}</p>
-        </div>
+        <connection-error :is-connection-error="isConnectionError"></connection-error>
     </div>
+
     <script src="https://cdn.jsdelivr.net/npm/vue@2/dist/vue.js"></script>
     <script src="script.js"></script>
 
