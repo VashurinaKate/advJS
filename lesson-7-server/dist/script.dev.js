@@ -62,9 +62,7 @@ app["delete"]('/removeFromCart', function (req, res) {
       var index = cart.findIndex(function (el) {
         return el.id_product === item.id_product;
       });
-      cart.splice(index, 1); // В данном случае при удалении товара из корзины постоянно происходить перезапись товаров?
-      // Влияет ли это на скорость работы приложения? И как от этого можно избавиться?
-
+      cart.splice(index, 1);
       fs.writeFile('cart.json', JSON.stringify(cart), function (err) {
         if (err) {
           res.send('{"result": 0}');
